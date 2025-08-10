@@ -1,0 +1,60 @@
+version: '3.8'
+
+# This Docker Compose file sets up the local development environment for the
+# subscription-manager service. It includes the backend application and a
+# PostgreSQL database.
+
+services:
+  # PostgreSQL Database Service
+  postgres:
+    image: postgres:13-alpine
+    container_name: school-bus-db
+    restart: always
+    environment:
+      # These variables are used by the Postgres image to initialize the database.
+      # It is recommended to use a .env file for these in a real environment.
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: school_bus_db
+    ports:
+      # Exposes the database on port 5432 to the host machine for direct access.
+      - "5432:5432"
+    volumes:
+      # Persists database data across container restarts.
+      - postgres_data:/var/lib/postgresql/data
+      # Mounts the schema.sql file to initialize the database on first run.
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d school_bus_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Subscription Manager Backend Service
+  subscription-manager:
+    container_name: subscription-manager-api
+    # Builds the Docker image from the Dockerfile in the current directory.
+    build: .
+    restart: always
+    ports:
+      # Exposes the application on port 3000.
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # Database connection string. The hostname 'postgres' refers to the
+      # postgres service defined above.
+      DATABASE_URL: "postgres://user:password@postgres:5432/school_bus_db"
+      # Other environment variables would go here (e.g., from a .env file).
+      # FIREBASE_SERVICE_ACCOUNT: ""
+      # PORT: 3000
+    volumes:
+      # Mounts the source code directory for live-reloading during development.
+      # This assumes a tool like nodemon is used to watch for file changes.
+      - ./src:/usr/src/app/src
+      - ./index.js:/usr/src/app/index.js
+
+# Named volume for persisting PostgreSQL data
+volumes:
+  postgres_data:

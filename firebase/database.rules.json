@@ -1,0 +1,52 @@
+{
+  "rules": {
+    // The /schools node contains all data, namespaced by tenantId.
+    "schools": {
+      // Individual tenant data can only be accessed if the user's auth token
+      // contains a tenantId that matches the path. This is the core of our
+      // multi-tenant security model.
+      "$tenantId": {
+        ".read": "auth != null && auth.token.tenantId === $tenantId",
+        ".write": "auth != null && auth.token.tenantId === $tenantId",
+
+        // Routes metadata can be read by any authenticated user of the tenant.
+        // Only admins can create, update, or delete routes.
+        "routes": {
+          ".read": "auth.token.tenantId === $tenantId",
+          ".write": "auth.token.role === 'admin'"
+        },
+
+        // Live GPS data can be read by any authenticated user of the tenant.
+        // Only drivers can write to the live data.
+        // A more granular rule would restrict drivers to their own routeId.
+        "live": {
+          ".read": "auth.token.tenantId === $tenantId",
+          "$routeId": {
+            ".write": "auth.token.role === 'driver'",
+            // Data validation for live updates
+            ".validate": "newData.hasChildren(['lat', 'lng', 'timestamp']) && newData.child('lat').isNumber() && newData.child('lng').isNumber() && newData.child('timestamp').isNumber()"
+          }
+        },
+
+        // Driver-specific information. Can only be managed by admins.
+        "drivers": {
+          ".read": "auth.token.role === 'admin'",
+          ".write": "auth.token.role === 'admin'"
+        },
+
+        // Parent-specific information. Can only be managed by admins.
+        "parents": {
+          ".read": "auth.token.role === 'admin' || auth.uid === $parentId",
+          ".write": "auth.token.role === 'admin'"
+        },
+
+        // Notifications can be read by anyone in the tenant.
+        // Only admins can send notifications.
+        "notifications": {
+          ".read": "auth.token.tenantId === $tenantId",
+          ".write": "auth.token.role === 'admin'"
+        }
+      }
+    }
+  }
+}
