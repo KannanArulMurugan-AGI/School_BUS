@@ -1,0 +1,83 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "School Bus App Data Model",
+  "description": "Defines the structure of the data stored in the Firebase Realtime Database.",
+  "type": "object",
+  "properties": {
+    "schools": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-zA-Z0-9-]+$": {
+          "type": "object",
+          "properties": {
+            "routes": {
+              "type": "object",
+              "patternProperties": {
+                "^[a-zA-Z0-9-]+$": {
+                  "type": "object",
+                  "properties": {
+                    "name": { "type": "string", "description": "The name of the bus route." },
+                    "driverId": { "type": "string", "description": "The ID of the driver assigned to this route." },
+                    "parentIds": {
+                      "type": "object",
+                      "description": "A map of parent IDs whose children are on this route."
+                    },
+                    "live": {
+                      "type": "object",
+                      "description": "The live GPS coordinates of the bus on this route.",
+                      "properties": {
+                        "lat": { "type": "number" },
+                        "lng": { "type": "number" },
+                        "timestamp": { "type": "integer" }
+                      },
+                      "required": ["lat", "lng", "timestamp"]
+                    }
+                  },
+                  "required": ["name", "driverId"]
+                }
+              }
+            },
+            "drivers": {
+              "type": "object",
+              "patternProperties": {
+                "^[a-zA-Z0-9-]+$": {
+                  "type": "object",
+                  "properties": {
+                    "name": { "type": "string", "description": "The full name of the driver." },
+                    "routeId": { "type": "string", "description": "The ID of the route this driver is assigned to." }
+                  },
+                  "required": ["name", "routeId"]
+                }
+              }
+            },
+            "parents": {
+              "type": "object",
+              "patternProperties": {
+                "^[a-zA-Z0-9-]+$": {
+                  "type": "object",
+                  "properties": {
+                    "name": { "type": "string", "description": "The full name of the parent." }
+                  },
+                  "required": ["name"]
+                }
+              }
+            },
+            "notifications": {
+              "type": "object",
+              "patternProperties": {
+                "^[a-zA-Z0-9-]+$": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string", "description": "The content of the notification." },
+                    "timestamp": { "type": "integer", "description": "The Unix timestamp of when the notification was sent." }
+                  },
+                  "required": ["message", "timestamp"]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

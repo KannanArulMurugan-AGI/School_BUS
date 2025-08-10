@@ -1,0 +1,41 @@
+{
+  "rules": {
+    "schools": {
+      "$tenantId": {
+        // --- General Tenant Access ---
+        // Only authenticated users with a matching tenantId in their token can access this namespace.
+        ".read": "auth != null && auth.token.tenantId === $tenantId",
+        ".write": "auth != null && auth.token.tenantId === $tenantId",
+
+        "routes": {
+          "$routeId": {
+            // Read access: granted to admins, or parents who have this route in their readableRoutes claim.
+            ".read": "auth.token.role === 'admin' || (auth.token.role === 'parent' && auth.token.readableRoutes.hasOwnProperty($routeId))",
+            // Write access: granted to admins, as long as they are not trying to write to the 'live' child.
+            ".write": "auth.token.role === 'admin' && !newData.hasChild('live')",
+
+            "live": {
+              // Read access: all authenticated members of the tenant can read the live location.
+              ".read": true,
+              // Write access: only the driver assigned to this specific route can write here.
+              ".write": "auth.token.role === 'driver' && auth.token.routeId === $routeId"
+            }
+          }
+        },
+
+        "drivers": {
+          ".write": "auth.token.role === 'admin'",
+          ".read": "auth.token.role === 'admin'"
+        },
+        "parents": {
+          ".write": "auth.token.role === 'admin'",
+          ".read": "auth.token.role === 'admin'"
+        },
+        "notifications": {
+          ".write": "auth.token.role === 'admin'",
+          ".read": true
+        }
+      }
+    }
+  }
+}
