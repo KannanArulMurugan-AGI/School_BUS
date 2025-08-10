@@ -1,0 +1,16 @@
+{
+  "name": "subscription-manager",
+  "version": "1.0.0",
+  "description": "Subscription Manager for School Bus Project",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "firebase-admin": "^11.5.0"
+  },
+  "author": "",
+  "license": "ISC"
+}
