@@ -1,0 +1,64 @@
+# This is a template for a GitHub Actions workflow to build and deploy the
+# subscription-manager service to Google Cloud Run.
+
+name: Deploy Subscription Manager to Cloud Run
+
+# This workflow runs on every push to the 'main' branch.
+on:
+  push:
+    branches:
+      - main
+    # Only run this workflow if changes are made in the subscription-manager directory
+    paths:
+      - 'subscription-manager/**'
+
+jobs:
+  deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+
+    # Add 'id-token' with 'write' permission to support Workload Identity Federation.
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Authenticate to Google Cloud using Workload Identity Federation.
+      # See: https://github.com/google-github-actions/auth
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v1
+        with:
+          # Replace with your Workload Identity Provider details.
+          workload_identity_provider: 'projects/YOUR_GCP_PROJECT_ID/locations/global/workloadIdentityPools/YOUR_POOL_ID/providers/YOUR_PROVIDER_ID'
+          # Replace with the email of the service account you created.
+          service_account: 'your-service-account-email@your-project-id.iam.gserviceaccount.com'
+
+      # Set up the Google Cloud SDK.
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+
+      # Use Google Cloud Build to build the Docker image and push it to Google Container Registry (GCR).
+      # This is a convenient way to build as it doesn't require Docker to be installed on the runner.
+      # It will use the Dockerfile located in the subscription-manager directory.
+      - name: Build and Push Docker image
+        run: |-
+          gcloud builds submit ./subscription-manager --tag gcr.io/${{ secrets.GCP_PROJECT_ID }}/subscription-manager
+
+      # Deploy the newly built image to Google Cloud Run.
+      - name: Deploy to Cloud Run
+        run: |-
+          gcloud run deploy subscription-manager \
+            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/subscription-manager:latest \
+            --platform managed \
+            --region us-central1 \
+            --allow-unauthenticated \
+            --project=${{ secrets.GCP_PROJECT_ID }}
+        # Note: --allow-unauthenticated makes the service publicly accessible.
+        # For production, you would likely want to use --no-allow-unauthenticated
+        # and set up IAM to control access.
+        # You should also manage secrets (like DATABASE_URL) via Google Secret Manager
+        # and expose them to the Cloud Run service.
