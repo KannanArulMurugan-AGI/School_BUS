@@ -143,8 +143,10 @@ app.post('/tenant/:id/notify', adminOnly, (req, res) => {
   });
 });
 
-app.listen(port, () => {
-  console.log(`Subscription Manager listening at http://localhost:${port}`);
-});
+if (require.main === module) {
+  app.listen(port, () => {
+    console.log(`Subscription Manager listening at http://localhost:${port}`);
+  });
+}
 
 module.exports = app; // Export for testing purposes

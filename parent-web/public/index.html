@@ -12,9 +12,48 @@
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
     <title>Parent Web App</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
+
+    <!-- Leaflet JS -->
+    <!-- Make sure you put this AFTER the div#root but BEFORE your main script. -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
+
+    <!-- Firebase SDK -->
+    <!-- These scripts make the firebase object available globally -->
+    <script src="https://www.gstatic.com/firebasejs/12.1.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.1.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.1.0/firebase-database-compat.js"></script>
+
+    <script>
+      // Your web app's Firebase configuration
+      // IMPORTANT: This is placeholder configuration. In a real app, these keys would be populated.
+      const firebaseConfig = {
+        apiKey: "AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+        authDomain: "your-project-id.firebaseapp.com",
+        databaseURL: "https://your-project-id.firebaseio.com",
+        projectId: "your-project-id",
+        storageBucket: "your-project-id.appspot.com",
+        messagingSenderId: "123456789012",
+        appId: "1:123456789012:web:xxxxxxxxxxxxxxxxxxxxxx"
+      };
+
+      // Initialize Firebase
+      try {
+        firebase.initializeApp(firebaseConfig);
+        console.log("Firebase SDK loaded and initialized via CDN (compat version).");
+      } catch (e) {
+        console.error("Error initializing Firebase:", e);
+      }
+    </script>
   </body>
 </html>
