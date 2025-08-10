@@ -1,0 +1,42 @@
+{
+  "rules": {
+    "schools": {
+      "$tenantId": {
+        // --- Tenant-level access control ---
+        // A user must be authenticated and their custom token's tenantId claim
+        // must match the tenantId in the path they are trying to access.
+        ".read": "auth != null && auth.token.tenantId == $tenantId",
+        ".write": "auth != null && auth.token.tenantId == $tenantId",
+
+        "drivers": {
+          // Drivers should only be able to update their own data.
+          // This assumes the driver's user ID is the key.
+          "$driverId": {
+            ".write": "auth.uid == $driverId"
+          }
+        },
+
+        "parents": {
+          // Parents should generally only have read access to specific routes they are assigned to.
+          // Writing is disabled at this level. More specific read rules will be needed elsewhere.
+          ".write": false
+        },
+
+        "routes": {
+          "$routeId": {
+            "live": {
+              // Only users with the 'driver' role can write to the 'live' node for a route.
+              // More specific rules could be added to ensure the driver is assigned to this specific route.
+              ".write": "auth.token.role == 'driver'"
+            }
+          }
+        },
+
+        "notifications": {
+            // Only users with the 'admin' role should be able to write notifications.
+            ".write": "auth.token.role == 'admin'"
+        }
+      }
+    }
+  }
+}

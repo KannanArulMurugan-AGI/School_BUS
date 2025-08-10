@@ -1,5 +1,4 @@
 const express = require('express');
-const bodyParser = require('body-parser');
 const db = require('./db');
 const firebase = require('./firebase');
 
@@ -7,8 +6,10 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 // Middleware
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+// app.use(bodyParser.json());
+// app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.get('/', (req, res) => {
@@ -143,8 +144,11 @@ app.post('/tenant/:id/notify', adminOnly, (req, res) => {
   });
 });
 
-app.listen(port, () => {
-  console.log(`Subscription Manager listening at http://localhost:${port}`);
-});
+// Start the server only if this file is run directly
+if (require.main === module) {
+  app.listen(port, () => {
+    console.log(`Subscription Manager listening at http://localhost:${port}`);
+  });
+}
 
 module.exports = app; // Export for testing purposes

@@ -1,30 +1,54 @@
-// This file mocks the database connection and queries.
-// In a real application, you would use the 'pg' library to connect to a PostgreSQL database.
+const { Pool } = require('pg');
+// Using a timestamp for the ID is not ideal, but avoids a new dependency
+// given the current environment issues.
 
-const mockTenants = [];
-const mockUsers = [];
+// The 'pg' library automatically reads environment variables for connection details.
+// - PGUSER: The user to connect as
+// - PGHOST: The database host
+// - PGPASSWORD: The password for the user
+// - PGDATABASE: The database to connect to
+// - PGPORT: The port to connect on
+const pool = new Pool();
 
 /**
- * Mocks creating a new tenant in the database.
- * @param {string} name - The name of the school/tenant.
- * @param {string} adminEmail - The email of the tenant's administrator.
- * @param {string} plan - The subscription plan.
- * @returns {object} The newly created tenant object.
+ * Executes a query against the database.
+ * @param {string} text - The SQL query text.
+ * @param {Array} params - The parameters for the query.
+ * @returns {Promise<object>} The query result.
+ */
+const query = (text, params) => pool.query(text, params);
+
+/**
+ * Creates a new tenant in the database.
+ * @param {object} tenantData - The data for the new tenant.
+ * @param {string} tenantData.name - The name of the school/tenant.
+ * @param {string} tenantData.adminEmail - The email of the tenant's administrator.
+ * @param {string} tenantData.plan - The subscription plan.
+ * @returns {Promise<object>} The newly created tenant object.
  */
 const createTenant = async ({ name, adminEmail, plan }) => {
-  console.log(`[DB MOCK] Creating tenant: ${name}`);
-  const newTenant = {
-    id: `tenant-${Date.now()}`,
-    name,
-    admin_email: adminEmail,
-    plan,
-    status: 'active',
-    created_at: new Date().toISOString(),
-  };
-  mockTenants.push(newTenant);
-  return newTenant;
+  const id = `tenant-${Date.now()}`; // Generate a unique ID
+  const status = 'active';
+
+  const sql = `
+    INSERT INTO tenants (id, name, admin_email, plan, status)
+    VALUES ($1, $2, $3, $4, $5)
+    RETURNING *;
+  `;
+
+  const params = [id, name, adminEmail, plan, status];
+
+  try {
+    const result = await query(sql, params);
+    console.log(`[DB] Created tenant: ${result.rows[0].name} (ID: ${result.rows[0].id})`);
+    return result.rows[0];
+  } catch (error) {
+    console.error(`[DB] Error creating tenant: ${error.message}`);
+    throw error;
+  }
 };
 
 module.exports = {
+  query,
   createTenant,
 };
