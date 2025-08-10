@@ -41,7 +41,9 @@ app.post('/subscribe', async (req, res) => {
       tenant: newTenant,
     });
   } catch (error) {
-    console.error('Error during subscription:', error);
+    if (process.env.NODE_ENV !== 'test') {
+      console.error('Error during subscription:', error);
+    }
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -74,7 +76,9 @@ app.post('/auth/token', async (req, res) => {
       token: customToken,
     });
   } catch (error) {
-    console.error('Error generating custom token:', error);
+    if (process.env.NODE_ENV !== 'test') {
+      console.error('Error generating custom token:', error);
+    }
     res.status(500).json({ error: 'Internal server error' });
   }
 });
