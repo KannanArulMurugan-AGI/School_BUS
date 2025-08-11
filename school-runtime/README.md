@@ -1,14 +1,37 @@
 # School Runtime
 
-This directory is a placeholder for the optional admin/runtime service.
+Optional containerized service for:
+- School-specific admin dashboard
+- Localized control over routes, drivers, and parents
 
-## Phase 6 - Runtime & Containerization
+## Features
+- Web admin panel
+- Route management UI
+- Driver/parent account management
+- Reporting & analytics
 
-**Goal:** Package optional per-tenant runtime and deploy.
+## Tech Stack
+- Node.js + Express (backend)
+- React/Tailwind (frontend)
+- Firebase Web SDK
 
-**Tasks:**
+## Environment Variables
+```
+PORT=8080
+TENANT_ID=school_123
+FIREBASE_CONFIG_BASE64=...
+```
 
-1.  Write Dockerfile for `school-runtime` service.
-2.  Push to registry via CI/CD.
-3.  Deploy multi-tenant container to Cloud Run with tenant-aware routes.
-4.  Implement Nginx reverse proxy for custom subdomains (optional).
+## Run Locally
+```bash
+npm install
+npm run build
+npm start
+```
+
+## Docker
+
+```bash
+docker build -t school-runtime .
+docker run -p 8080:8080 school-runtime
+```
