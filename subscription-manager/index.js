@@ -33,6 +33,13 @@ app.post('/subscribe', async (req, res) => {
     // Create a tenant record in the database
     const newTenant = await db.createTenant({ name, adminEmail, plan });
 
+    // Create an admin user for the new tenant
+    await db.createUser({
+      tenant_id: newTenant.id,
+      role: 'admin',
+      identifier: adminEmail,
+    });
+
     // Initialize the tenant's namespace in Firebase
     await firebase.initializeTenantNamespace(newTenant.id);
 
@@ -56,12 +63,12 @@ app.post('/auth/token', async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields: userId, tenantId, role' });
     }
 
-    // In a real application, you would first validate the user's credentials
-    // or session against your user database.
-    // const user = await db.findUserById(userId);
-    // if (!user || user.tenant_id !== tenantId) {
-    //   return res.status(403).json({ error: 'Forbidden' });
-    // }
+    // Validate the user against the database.
+    const user = await db.findUserById(userId);
+    if (!user || user.tenant_id !== tenantId) {
+      // Note: In a real app, you might want a more generic error to avoid leaking information.
+      return res.status(403).json({ error: 'Forbidden: User does not belong to the specified tenant.' });
+    }
 
     const customClaims = {
       tenantId: tenantId,

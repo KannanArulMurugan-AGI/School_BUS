@@ -27,23 +27,71 @@ const query = (text, params) => pool.query(text, params);
  * @returns {Promise<object>} The newly created tenant object.
  */
 const createTenant = async ({ name, adminEmail, plan }) => {
-  const id = `tenant-${Date.now()}`; // Generate a unique ID
-  const status = 'active';
-
   const sql = `
-    INSERT INTO tenants (id, name, admin_email, plan, status)
-    VALUES ($1, $2, $3, $4, $5)
+    INSERT INTO tenants (name, admin_email, plan)
+    VALUES ($1, $2, $3)
     RETURNING *;
   `;
 
-  const params = [id, name, adminEmail, plan, status];
+  const params = [name, adminEmail, plan];
 
   try {
     const result = await query(sql, params);
-    console.log(`[DB] Created tenant: ${result.rows[0].name} (ID: ${result.rows[0].id})`);
+    if (process.env.NODE_ENV !== 'test') {
+      console.log(`[DB] Created tenant: ${result.rows[0].name} (ID: ${result.rows[0].id})`);
+    }
     return result.rows[0];
   } catch (error) {
-    console.error(`[DB] Error creating tenant: ${error.message}`);
+    if (process.env.NODE_ENV !== 'test') {
+      console.error(`[DB] Error creating tenant: ${error.message}`);
+    }
+    throw error;
+  }
+};
+
+/**
+ * Creates a new user in the database.
+ * @param {object} userData - The data for the new user.
+ * @param {string} userData.tenant_id - The ID of the tenant the user belongs to.
+ * @param {string} userData.role - The user's role (e.g., 'admin').
+ * @param {string} userData.identifier - The user's identifier (e.g., email).
+ * @returns {Promise<object>} The newly created user object.
+ */
+const createUser = async ({ tenant_id, role, identifier }) => {
+  const sql = `
+    INSERT INTO users (tenant_id, role, identifier)
+    VALUES ($1, $2, $3)
+    RETURNING *;
+  `;
+  const params = [tenant_id, role, identifier];
+  try {
+    const result = await query(sql, params);
+    if (process.env.NODE_ENV !== 'test') {
+      console.log(`[DB] Created user: ${result.rows[0].identifier} (ID: ${result.rows[0].id})`);
+    }
+    return result.rows[0];
+  } catch (error) {
+    if (process.env.NODE_ENV !== 'test') {
+      console.error(`[DB] Error creating user: ${error.message}`);
+    }
+    throw error;
+  }
+};
+
+/**
+ * Finds a user by their ID.
+ * @param {string} id - The UUID of the user to find.
+ * @returns {Promise<object|undefined>} The user object, or undefined if not found.
+ */
+const findUserById = async (id) => {
+  const sql = 'SELECT * FROM users WHERE id = $1;';
+  try {
+    const result = await query(sql, [id]);
+    return result.rows[0]; // Returns the user or undefined if not found
+  } catch (error) {
+    if (process.env.NODE_ENV !== 'test') {
+      console.error(`[DB] Error finding user by ID: ${error.message}`);
+    }
     throw error;
   }
 };
@@ -51,4 +99,6 @@ const createTenant = async ({ name, adminEmail, plan }) => {
 module.exports = {
   query,
   createTenant,
+  createUser,
+  findUserById,
 };

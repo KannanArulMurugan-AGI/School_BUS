@@ -1,7 +1,7 @@
 -- School Bus Tracking System - PostgreSQL Schema
--- Version 1.0
+-- Version 1.1
 
--- Enable UUID extension
+-- Enable UUID extension if not already enabled
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- tenants table
@@ -9,7 +9,9 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE tenants (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(255) NOT NULL,
-    status VARCHAR(50) NOT NULL DEFAULT 'active', -- e.g., active, inactive, trial
+    admin_email VARCHAR(255) NOT NULL UNIQUE,
+    plan VARCHAR(50) NOT NULL, -- e.g., 'basic', 'premium'
+    status VARCHAR(50) NOT NULL DEFAULT 'active', -- e.g., 'active', 'inactive', 'trial'
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -19,29 +21,16 @@ CREATE TABLE tenants (
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
-    email VARCHAR(255) NOT NULL,
-    firebase_uid VARCHAR(255) NOT NULL UNIQUE,
-    role VARCHAR(50) NOT NULL, -- e.g., admin, parent, driver
+    role VARCHAR(50) NOT NULL, -- e.g., 'admin', 'driver', 'parent'
+    identifier VARCHAR(255) NOT NULL, -- e.g., email for parent, driver's license for driver
+    status VARCHAR(50) NOT NULL DEFAULT 'active',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    UNIQUE(tenant_id, email)
+    UNIQUE(tenant_id, identifier)
 );
 
--- routes table
--- Stores metadata for bus routes for each tenant
-CREATE TABLE routes (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
-    name VARCHAR(255) NOT NULL,
-    description TEXT,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
--- Create indexes for foreign keys and frequently queried columns
+-- Indexes for faster lookups
 CREATE INDEX idx_users_tenant_id ON users(tenant_id);
-CREATE INDEX idx_routes_tenant_id ON routes(tenant_id);
-CREATE INDEX idx_users_firebase_uid ON users(firebase_uid);
 
 -- Trigger to update 'updated_at' timestamp on row modification
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -54,4 +43,3 @@ $$ language 'plpgsql';
 
 CREATE TRIGGER update_tenants_updated_at BEFORE UPDATE ON tenants FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
 CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
-CREATE TRIGGER update_routes_updated_at BEFORE UPDATE ON routes FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
