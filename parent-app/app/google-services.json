@@ -1,0 +1,23 @@
+{
+  "project_info": {
+    "project_number": "669929320524",
+    "project_id": "school-bus-6fc23",
+    "storage_bucket": "school-bus-6fc23.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:669929320524:android:PARENT_APP_ID_PLACEHOLDER",
+        "android_client_info": {
+          "package_name": "com.example.parentapp"
+        }
+      },
+      "api_key": [
+        {
+          "current_key": "AIzaSyApIk3uPCGhpd2ZiKVlircgq1GABE-ApGk"
+        }
+      ]
+    }
+  ],
+  "configuration_version": "1"
+}
