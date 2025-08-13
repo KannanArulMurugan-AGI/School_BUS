@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { auth, database } from '../services/firebase';
-import { ref, onValue } from 'firebase/database';
+import { ref, onValue, query, orderByChild, equalTo, get } from 'firebase/database';
 
 /**
  * A placeholder component for the main map view.
@@ -15,27 +15,54 @@ function MapView({ user, onSignOut }) {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    // This function will be the subscription canceller.
     let unsubscribe = () => {};
 
-    const getTenantIdAndSubscribe = async () => {
+    const setupSubscription = async () => {
       try {
-        const idTokenResult = await user.getIdTokenResult(true); // Force refresh of the token
+        // 1. Get tenantId from the user's auth token
+        const idTokenResult = await user.getIdTokenResult(true);
         const tenantId = idTokenResult.claims.tenantId;
-
         if (!tenantId) {
           setError("Could not find a tenant ID for your account.");
-          console.error("No tenantId claim found in user's token.");
           return;
         }
 
-        // In a real application, the parent would be associated with one or more children,
-        // who are in turn assigned to specific routes. This logic would determine the routeId.
-        const routeId = 'route-1'; // This is a placeholder and should be dynamic.
+        // 2. Find the parentId associated with the logged-in user's email
+        const parentsRef = ref(database, `schools/${tenantId}/parents`);
+        const parentQuery = query(parentsRef, orderByChild('email'), equalTo(user.email));
+        const parentSnapshot = await get(parentQuery);
 
+        if (!parentSnapshot.exists()) {
+          setError("Your account is not registered as a parent in the system.");
+          return;
+        }
+
+        // Assuming one parent per email, get the parent's data
+        const parentData = Object.values(parentSnapshot.val())[0];
+        const childId = Object.keys(parentData.children)[0]; // Get the first child's ID
+
+        if (!childId) {
+          setError("No children are associated with your parent account.");
+          return;
+        }
+
+        // 3. Get the child's data to find their routeId
+        const childRef = ref(database, `schools/${tenantId}/children/${childId}`);
+        const childSnapshot = await get(childRef);
+        if (!childSnapshot.exists()) {
+          setError("Could not find details for the associated child.");
+          return;
+        }
+        const routeId = childSnapshot.val().routeId;
+
+        if (!routeId) {
+          setError("The child is not assigned to any bus route.");
+          return;
+        }
+
+        // 4. Subscribe to the live location of the dynamically found route
         const liveRouteRef = ref(database, `schools/${tenantId}/routes/${routeId}/live`);
-
-        console.log(`Subscribing to Firebase path: schools/${tenantId}/routes/${routeId}/live`);
+        console.log(`Subscribing to dynamic path: ${liveRouteRef.toString()}`);
 
         unsubscribe = onValue(liveRouteRef, (snapshot) => {
           const data = snapshot.val();
@@ -47,14 +74,13 @@ function MapView({ user, onSignOut }) {
         });
 
       } catch (err) {
-        console.error("Failed to get user's token or subscribe to updates:", err);
+        console.error("An error occurred during subscription setup:", err);
         setError("An error occurred while setting up the live data feed.");
       }
     };
 
-    getTenantIdAndSubscribe();
+    setupSubscription();
 
-    // The cleanup function returned by useEffect will be called when the component unmounts.
     return () => {
       console.log('Unsubscribing from route updates.');
       unsubscribe();
