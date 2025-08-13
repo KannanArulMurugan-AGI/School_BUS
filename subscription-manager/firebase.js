@@ -43,14 +43,60 @@ const initializeTenantNamespace = async (tenantId) => {
   const db = admin.database();
   const tenantRef = db.ref(`/schools/${tenantId}`);
 
+  const now = admin.database.ServerValue.TIMESTAMP;
+
+  // Define sample IDs for relationships
+  const sampleDriverId = 'driver-01';
+  const sampleRouteId = 'route-a';
+  const sampleParentId = 'parent-jane-doe';
+  const sampleChildId = 'child-timmy-doe';
+
   const initialStructure = {
-    routes: true,
-    drivers: true,
-    parents: true,
-    notifications: true,
     metadata: {
-      initializedAt: admin.database.ServerValue.TIMESTAMP,
+      schoolName: `School #${tenantId}`,
+      initializedAt: now,
     },
+    routes: {
+      [sampleRouteId]: {
+        name: 'Morning Sun Route',
+        driverId: sampleDriverId,
+        stops: {
+          '0': { name: 'Central Station', lat: 34.056, lng: -118.234 },
+          '1': { name: 'Elm Street & 4th', lat: 34.058, lng: -118.238 },
+        },
+        live: {
+          lat: 34.056,
+          lng: -118.234,
+          timestamp: now,
+        },
+      },
+    },
+    drivers: {
+      [sampleDriverId]: {
+        name: 'John Doe',
+        contact: '555-0101',
+        assignedRouteId: sampleRouteId,
+      },
+    },
+    children: {
+      [sampleChildId]: {
+        name: 'Timmy Doe',
+        routeId: sampleRouteId,
+        parentId: sampleParentId,
+      },
+    },
+    parents: {
+      [sampleParentId]: {
+        name: 'Jane Doe',
+        // This is the UID that would be used to log in.
+        // For a real app, this would be created via the auth system.
+        email: `parent.${tenantId}@example.com`,
+        children: {
+          [sampleChildId]: true,
+        },
+      },
+    },
+    notifications: {}, // Keep notifications but initialize as an empty object
   };
 
   try {
