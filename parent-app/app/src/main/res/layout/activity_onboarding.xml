@@ -13,7 +13,7 @@
         android:id="@+id/tenantIdEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Enter Tenant ID"
+        android:hint="@string/onboarding_tenant_id_hint"
         android:inputType="text"
         android:maxLines="1" />
 
@@ -22,6 +22,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:text="Start Tracking" />
+        android:text="@string/onboarding_start_tracking_button" />
 
 </LinearLayout>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Auto-generated Spanish translations -->
+<resources>
+    <string name="app_name">Aplicación para Padres</string>
+    <string name="onboarding_tenant_id_hint">Ingrese el ID del inquilino</string>
+    <string name="onboarding_start_tracking_button">Comenzar a rastrear</string>
+    <string name="map_bus_marker_title">Autobús</string>
+</resources>

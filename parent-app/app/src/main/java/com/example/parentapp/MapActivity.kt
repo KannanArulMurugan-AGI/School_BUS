@@ -66,7 +66,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private fun updateMap(location: LatLng) {
         if (busMarker == null) {
-            busMarker = googleMap.addMarker(MarkerOptions().position(location).title("Bus"))
+            busMarker = googleMap.addMarker(MarkerOptions().position(location).title(getString(R.string.map_bus_marker_title)))
             googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location, 15f))
         } else {
             busMarker?.position = location
