@@ -1,3 +1,10 @@
+/**
+ * @fileoverview This module provides utility functions for interacting with
+ * the Firebase Admin SDK, such as creating custom tokens and initializing
+ * tenant data in the Realtime Database.
+ * @module firebase
+ */
+
 const admin = require('firebase-admin');
 
 // Initialize the Firebase Admin SDK.
@@ -7,8 +14,6 @@ try {
   admin.initializeApp();
 } catch (error) {
   console.error('[FIREBASE] Failed to initialize Firebase Admin SDK:', error.message);
-  // In a real app, you might want to exit the process if Firebase is essential.
-  // process.exit(1);
 }
 
 
@@ -16,7 +21,8 @@ try {
  * Creates a custom Firebase authentication token for the given user ID and claims.
  * @param {string} uid - The user ID to associate with the custom token.
  * @param {object} claims - Custom claims to include in the token (e.g., { tenantId, role }).
- * @returns {Promise<string>} A Firebase custom token.
+ * @returns {Promise<string>} A promise that resolves with the Firebase custom token.
+ * @throws {Error} If the Firebase Admin SDK is not initialized or if token creation fails.
  */
 const createCustomToken = async (uid, claims) => {
   if (!admin.apps.length) {
@@ -34,7 +40,10 @@ const createCustomToken = async (uid, claims) => {
 
 /**
  * Initializes a new tenant's data structure in the Firebase Realtime Database.
+ * This sets up the basic nodes for a new tenant under `/schools/{tenantId}`.
  * @param {string} tenantId - The ID of the new tenant.
+ * @returns {Promise<void>} A promise that resolves when the data has been set.
+ * @throws {Error} If the Firebase Admin SDK is not initialized or if the database write fails.
  */
 const initializeTenantNamespace = async (tenantId) => {
   if (!admin.apps.length) {
@@ -65,6 +74,5 @@ const initializeTenantNamespace = async (tenantId) => {
 module.exports = {
   createCustomToken,
   initializeTenantNamespace,
-  // Exporting admin for advanced use or testing if needed
   _admin: admin,
 };

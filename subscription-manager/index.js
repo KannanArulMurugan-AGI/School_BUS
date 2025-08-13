@@ -1,3 +1,10 @@
+/**
+ * @fileoverview This file contains the main Express application for the
+ * Subscription Manager service. It defines the API endpoints for managing
+ * subscriptions and generating authentication tokens.
+ * @module index
+ */
+
 const express = require('express');
 const db = require('./db');
 const firebase = require('./firebase');
@@ -6,16 +13,37 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 // Middleware
-// app.use(bodyParser.json());
-// app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Routes
+// --- Routes ---
+
+/**
+ * Route serving a welcome message for the service root.
+ * @name GET /
+ * @function
+ * @memberof module:index
+ * @inner
+ * @param {object} req - Express request object.
+ * @param {object} res - Express response object.
+ */
 app.get('/', (req, res) => {
   res.send('Subscription Manager is running!');
 });
 
+/**
+ * Route for creating a new tenant subscription.
+ * @name POST /subscribe
+ * @function
+ * @memberof module:index
+ * @inner
+ * @param {object} req - Express request object.
+ * @param {object} req.body - The request body.
+ * @param {string} req.body.name - The name of the school or tenant.
+ * @param {string} req.body.adminEmail - The email of the administrator.
+ * @param {string} req.body.plan - The subscription plan (e.g., 'basic', 'premium').
+ * @param {object} res - Express response object.
+ */
 app.post('/subscribe', async (req, res) => {
   try {
     const { name, adminEmail, plan } = req.body;
@@ -24,16 +52,7 @@ app.post('/subscribe', async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields: name, adminEmail, plan' });
     }
 
-    // In a real application, you would first process the payment via a gateway like Stripe.
-    // const paymentResult = await paymentGateway.process({ ... });
-    // if (!paymentResult.success) {
-    //   return res.status(402).json({ error: 'Payment failed' });
-    // }
-
-    // Create a tenant record in the database
     const newTenant = await db.createTenant({ name, adminEmail, plan });
-
-    // Initialize the tenant's namespace in Firebase
     await firebase.initializeTenantNamespace(newTenant.id);
 
     res.status(201).json({
@@ -48,6 +67,19 @@ app.post('/subscribe', async (req, res) => {
   }
 });
 
+/**
+ * Route for generating a custom Firebase authentication token.
+ * @name POST /auth/token
+ * @function
+ * @memberof module:index
+ * @inner
+ * @param {object} req - Express request object.
+ * @param {object} req.body - The request body.
+ * @param {string} req.body.userId - The user's unique ID.
+ * @param {string} req.body.tenantId - The ID of the tenant the user belongs to.
+ * @param {string} req.body.role - The user's role (e.g., 'driver', 'parent', 'admin').
+ * @param {object} res - Express response object.
+ */
 app.post('/auth/token', async (req, res) => {
   try {
     const { userId, tenantId, role } = req.body;
@@ -56,19 +88,7 @@ app.post('/auth/token', async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields: userId, tenantId, role' });
     }
 
-    // In a real application, you would first validate the user's credentials
-    // or session against your user database.
-    // const user = await db.findUserById(userId);
-    // if (!user || user.tenant_id !== tenantId) {
-    //   return res.status(403).json({ error: 'Forbidden' });
-    // }
-
-    const customClaims = {
-      tenantId: tenantId,
-      role: role,
-    };
-
-    // Create a custom Firebase token with the claims
+    const customClaims = { tenantId, role };
     const customToken = await firebase.createCustomToken(userId, customClaims);
 
     res.status(200).json({
@@ -83,10 +103,14 @@ app.post('/auth/token', async (req, res) => {
   }
 });
 
-// --- Admin Middleware (Placeholder) ---
+/**
+ * Middleware to protect routes that require admin access.
+ * In a real app, this would validate a JWT. This mock checks for a header.
+ * @param {object} req - Express request object.
+ * @param {object} res - Express response object.
+ * @param {function} next - Express next middleware function.
+ */
 const adminOnly = (req, res, next) => {
-  // In a real app, you would validate a JWT and check the 'role' claim.
-  // For this mock, we'll just check for a specific header.
   if (req.headers['x-admin-auth'] === 'true') {
     next();
   } else {
@@ -97,10 +121,18 @@ const adminOnly = (req, res, next) => {
 
 // --- Admin Routes ---
 
-// Get Tenant Details
+/**
+ * Route for getting tenant details. (Admin only)
+ * @name GET /tenant/:id
+ * @function
+ * @memberof module:index
+ * @inner
+ * @param {object} req - Express request object.
+ * @param {string} req.params.id - The ID of the tenant to retrieve.
+ * @param {object} res - Express response object.
+ */
 app.get('/tenant/:id', adminOnly, (req, res) => {
   const { id } = req.params;
-  // In a real app, you would fetch this from the database.
   res.status(200).json({
     id,
     name: `Mock School ${id}`,
@@ -110,30 +142,60 @@ app.get('/tenant/:id', adminOnly, (req, res) => {
   });
 });
 
-// Manage Tenant Routes
+/**
+ * Route for getting a tenant's routes. (Admin only)
+ * @name GET /tenant/:id/routes
+ * @function
+ * @memberof module:index
+ * @inner
+ * @param {object} req - Express request object.
+ * @param {string} req.params.id - The ID of the tenant.
+ * @param {object} res - Express response object.
+ */
 app.get('/tenant/:id/routes', adminOnly, (req, res) => {
     const { id: tenantId } = req.params;
-    // In a real app, you would fetch this from the database.
     res.status(200).json([
         { id: 'route-1', name: 'Morning Route', tenantId },
         { id: 'route-2', name: 'Evening Route', tenantId },
     ]);
 });
 
+/**
+ * Route for creating a new route for a tenant. (Admin only)
+ * @name POST /tenant/:id/routes
+ * @function
+ * @memberof module:index
+ * @inner
+ * @param {object} req - Express request object.
+ * @param {string} req.params.id - The ID of the tenant.
+ * @param {object} req.body - The request body.
+ * @param {string} req.body.name - The name of the new route.
+ * @param {object} res - Express response object.
+ */
 app.post('/tenant/:id/routes', adminOnly, (req, res) => {
     const { id: tenantId } = req.params;
     const { name } = req.body;
     if (!name) {
         return res.status(400).json({ error: 'Missing required field: name' });
     }
-    // In a real app, you would save this to the database.
     res.status(201).json({
         message: 'Route created successfully',
         route: { id: `route-${Date.now()}`, name, tenantId },
     });
 });
 
-// Send Notification to Tenant
+/**
+ * Route for sending a notification to a tenant. (Admin only)
+ * @name POST /tenant/:id/notify
+ * @function
+ * @memberof module:index
+ * @inner
+ * @param {object} req - Express request object.
+ * @param {string} req.params.id - The ID of the tenant.
+ * @param {object} req.body - The request body.
+ * @param {string} req.body.message - The notification message.
+ * @param {object} res - Express response object.
+ */
 app.post('/tenant/:id/notify', adminOnly, (req, res) => {
   const { id: tenantId } = req.params;
   const { message } = req.body;
@@ -155,4 +217,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = app; // Export for testing purposes
+module.exports = app;

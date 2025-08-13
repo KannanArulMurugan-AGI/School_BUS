@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "test": "jest --detectOpenHandles"
+    "test": "jest --detectOpenHandles",
+    "docs": "jsdoc -c jsdoc.json"
   },
   "dependencies": {
     "express": "^4.18.2",
@@ -16,6 +17,7 @@
   "license": "ISC",
   "devDependencies": {
     "jest": "^30.0.5",
+    "jsdoc": "^4.0.4",
     "supertest": "^7.1.4"
   }
 }

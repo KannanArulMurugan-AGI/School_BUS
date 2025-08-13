@@ -1,20 +1,21 @@
+/**
+ * @fileoverview This module handles all database interactions for the
+ * Subscription Manager service, using the 'pg' library to connect to a
+ * PostgreSQL database.
+ * @module db
+ * @see {@link https://node-postgres.com/} for more information about the 'pg' library.
+ */
+
 const { Pool } = require('pg');
-// Using a timestamp for the ID is not ideal, but avoids a new dependency
-// given the current environment issues.
 
 // The 'pg' library automatically reads environment variables for connection details.
-// - PGUSER: The user to connect as
-// - PGHOST: The database host
-// - PGPASSWORD: The password for the user
-// - PGDATABASE: The database to connect to
-// - PGPORT: The port to connect on
 const pool = new Pool();
 
 /**
- * Executes a query against the database.
+ * Executes a query against the database. This is a thin wrapper around `pool.query`.
  * @param {string} text - The SQL query text.
- * @param {Array} params - The parameters for the query.
- * @returns {Promise<object>} The query result.
+ * @param {Array} [params=[]] - The parameters for the query.
+ * @returns {Promise<object>} The query result object from the 'pg' library.
  */
 const query = (text, params) => pool.query(text, params);
 
@@ -24,7 +25,8 @@ const query = (text, params) => pool.query(text, params);
  * @param {string} tenantData.name - The name of the school/tenant.
  * @param {string} tenantData.adminEmail - The email of the tenant's administrator.
  * @param {string} tenantData.plan - The subscription plan.
- * @returns {Promise<object>} The newly created tenant object.
+ * @returns {Promise<object>} The newly created tenant object from the database.
+ * @throws {Error} If the database query fails.
  */
 const createTenant = async ({ name, adminEmail, plan }) => {
   const id = `tenant-${Date.now()}`; // Generate a unique ID
