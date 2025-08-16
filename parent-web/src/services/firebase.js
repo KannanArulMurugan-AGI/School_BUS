@@ -3,16 +3,14 @@ import { initializeApp } from "firebase/app";
 import { getAuth, signInWithCustomToken } from "firebase/auth";
 import { getDatabase } from "firebase/database";
 
-// TODO: Replace with your app's actual Firebase configuration.
-// These details can be found in your Firebase project settings.
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyApIk3uPCGhpd2ZiKVlircgq1GABE-ApGk",
+  authDomain: "school-bus-6fc23.firebaseapp.com",
+  databaseURL: "https://school-bus-6fc23.firebaseio.com",
+  projectId: "school-bus-6fc23",
+  storageBucket: "school-bus-6fc23.appspot.com",
+  messagingSenderId: "669929320524",
+  appId: "1:669929320524:web:8df55a748ec089a63c04e9"
 };
 
 // Initialize Firebase
