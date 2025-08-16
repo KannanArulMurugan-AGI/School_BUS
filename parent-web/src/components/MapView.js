@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { auth, database } from '../services/firebase';
 import { ref, onValue } from 'firebase/database';
 
@@ -88,28 +89,31 @@ function MapView({ user, onSignOut }) {
           </button>
         </div>
       </header>
-      <main className="flex-grow bg-gray-200">
-        {/*
-          This is where the map component would be rendered.
-
-          TODO: Integrate a mapping library like Mapbox or React Leaflet.
-          1. Install the chosen library (e.g., `npm install mapbox-gl`).
-          2. Import the map component here.
-          3. Pass the `liveGpsData` state object to the map component to render a marker for the bus.
-          4. Optionally, draw the route polyline on the map.
-        */}
-        <div className="flex items-center justify-center w-full h-full">
-          <div className="p-8 text-center bg-white rounded-lg shadow-lg">
-            <h3 className="text-2xl font-bold">Map Placeholder</h3>
-            <p className="mt-2 text-gray-600">The live map will be displayed here.</p>
-            {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
-            <div className="mt-4 text-left p-4 bg-gray-50 rounded-md text-sm">
-              <p className="font-mono"><strong>Status:</strong> {liveGpsData ? 'Receiving live data...' : 'Waiting for data...'}</p>
-              <p className="font-mono"><strong>Latitude:</strong> {liveGpsData?.lat || 'N/A'}</p>
-              <p className="font-mono"><strong>Longitude:</strong> {liveGpsData?.lng || 'N/A'}</p>
-            </div>
+      <main className="flex-grow" style={{ height: 'calc(100vh - 64px)' }}>
+        {error && (
+          <div className="absolute top-16 left-1/2 -translate-x-1/2 z-[1000] p-4 bg-red-100 text-red-700 rounded-lg shadow-lg">
+            <p>{error}</p>
           </div>
-        </div>
+        )}
+        <MapContainer
+          center={[37.3861, -122.0839]} // Default center (e.g., Mountain View, CA)
+          zoom={13}
+          scrollWheelZoom={true}
+          style={{ height: '100%', width: '100%' }}
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          {liveGpsData && liveGpsData.lat && liveGpsData.lng && (
+            <Marker position={[liveGpsData.lat, liveGpsData.lng]}>
+              <Popup>
+                Bus Location: <br />
+                Lat: {liveGpsData.lat.toFixed(6)}, Lng: {liveGpsData.lng.toFixed(6)}
+              </Popup>
+            </Marker>
+          )}
+        </MapContainer>
       </main>
     </div>
   );
