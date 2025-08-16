@@ -3,17 +3,15 @@ import { initializeApp } from "firebase/app";
 import { getAuth, signInWithCustomToken } from "firebase/auth";
 import { getDatabase } from "firebase/database";
 
-// TODO: Replace with your app's actual Firebase configuration.
-// These details can be found in your Firebase project settings.
-// IMPORTANT: These are placeholder values. Replace them with your actual Firebase project credentials.
+// The user has provided the following Firebase configuration.
 const firebaseConfig = {
-  apiKey: process.env.REACT_APP_FIREBASE_API_KEY || "YOUR_API_KEY",
-  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || "YOUR_PROJECT_ID.firebaseapp.com",
-  databaseURL: process.env.REACT_APP_FIREBASE_DATABASE_URL || "https://YOUR_PROJECT_ID.firebaseio.com",
-  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID || "YOUR_PROJECT_ID",
-  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET || "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || "YOUR_SENDER_ID",
-  appId: process.env.REACT_APP_FIREBASE_APP_ID || "YOUR_APP_ID"
+  apiKey: "AIzaSyApIk3uPCGhpd2ZiKVlircgq1GABE-ApGk",
+  authDomain: "school-bus-6fc23.firebaseapp.com",
+  databaseURL: "https://school-bus-6fc23.firebaseio.com",
+  projectId: "school-bus-6fc23",
+  storageBucket: "school-bus-6fc23.firebasestorage.app",
+  messagingSenderId: "669929320524",
+  appId: "1:669929320524:web:8df55a748ec089a63c04e9"
 };
 
 // Initialize Firebase
